@@ -50,6 +50,26 @@ python -m PyInstaller --onefile --console --name AD_auto_main --clean --noconfir
 
 빌드 후 `dist\AD_auto_main.exe`와 같은 폴더에 `credentials.json`을 둡니다.
 
+## GitHub 제외 파일
+
+아래 파일과 폴더는 GitHub에 올리지 않습니다.
+
+- `credentials.json`
+  - Google service account private key가 포함되어 있습니다.
+  - 유출되면 Google Sheet 접근 권한이 외부로 노출될 수 있으므로 로컬 또는 배포 패키지에서만 관리합니다.
+- `dist/AD_auto_main.exe`
+  - 빌드 산출물입니다.
+  - 소스 코드에서 다시 생성할 수 있고 파일 크기가 크므로 GitHub에는 올리지 않습니다.
+- `EXPORT_*.xlsx`
+  - SAP에서 내려받은 업무 데이터입니다.
+  - 항공기 정비 데이터가 포함될 수 있고 실행할 때마다 새로 생성되므로 GitHub에는 올리지 않습니다.
+- `build/`
+  - PyInstaller 임시 빌드 폴더입니다.
+  - 재빌드 시 자동 생성되므로 GitHub에는 올리지 않습니다.
+- `Old/`
+  - 이전 테스트/백업 파일 보관용 폴더입니다.
+  - 현재 배포 대상 코드가 아니므로 GitHub에는 올리지 않습니다.
+
 ## 보안 주의
 
 - `credentials.json`은 GitHub에 올리지 않습니다.
