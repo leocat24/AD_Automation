@@ -246,8 +246,21 @@ exit 1
     return left, top, width, height
 
 
+def maximize_active_window_with_keyboard() -> None:
+    try:
+        pyautogui.hotkey("win", "up")
+        time.sleep(0.8)
+    except Exception as exc:
+        print(f"SAP keyboard maximize failed: {exc}")
+
+
 def right_click_sap_export_area(label: str) -> None:
     rect = get_maximized_sap_window_rect()
+    maximize_active_window_with_keyboard()
+    updated_rect = get_maximized_sap_window_rect()
+    if updated_rect is not None:
+        rect = updated_rect
+
     if rect is None:
         print(f"{label} SAP window rect failed: fallback to screen center")
         screen_width, screen_height = pyautogui.size()
