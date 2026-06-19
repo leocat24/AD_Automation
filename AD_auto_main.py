@@ -28,6 +28,8 @@ EXPORT_SEARCH_DIRS = [
     FHFC_DOWNLOAD_DIR,
     IP24_DOWNLOAD_DIR,
 ]
+SAP_EXPORT_RIGHT_CLICK_X_RATIO = 0.48
+SAP_EXPORT_RIGHT_CLICK_Y_RATIO = 0.50
 
 GTL_RANGE = "A25:A29"
 AIRCRAFT_RANGE = "A4:A15"
@@ -180,6 +182,86 @@ exit 1
     time.sleep(1.0)
 
 
+def get_maximized_sap_window_rect() -> tuple[int, int, int, int] | None:
+    script = r"""
+$signature = @'
+using System;
+using System.Runtime.InteropServices;
+public class WinApi {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+}
+'@
+Add-Type $signature -ErrorAction SilentlyContinue | Out-Null
+$processes = Get-Process | Where-Object {
+    $_.MainWindowHandle -ne 0 -and (
+        $_.ProcessName -like '*sap*' -or
+        $_.MainWindowTitle -like '*SAP*'
+    )
+} | Sort-Object StartTime -Descending
+foreach ($process in $processes) {
+    [void][WinApi]::ShowWindow($process.MainWindowHandle, 3)
+    Start-Sleep -Milliseconds 500
+    [void][WinApi]::SetForegroundWindow($process.MainWindowHandle)
+    $rect = New-Object WinApi+RECT
+    if ([WinApi]::GetWindowRect($process.MainWindowHandle, [ref]$rect)) {
+        "$($rect.Left),$($rect.Top),$($rect.Right),$($rect.Bottom)"
+        exit 0
+    }
+}
+exit 1
+"""
+    try:
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", script],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+    except Exception as exc:
+        print(f"SAP window rect check failed: {exc}")
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    match = re.search(r"(-?\d+),(-?\d+),(-?\d+),(-?\d+)", result.stdout)
+    if not match:
+        return None
+
+    left, top, right, bottom = (int(value) for value in match.groups())
+    width = right - left
+    height = bottom - top
+    if width <= 0 or height <= 0:
+        return None
+    return left, top, width, height
+
+
+def right_click_sap_export_area(label: str) -> None:
+    rect = get_maximized_sap_window_rect()
+    if rect is None:
+        print(f"{label} SAP window rect failed: fallback to screen center")
+        screen_width, screen_height = pyautogui.size()
+        x = screen_width // 2
+        y = screen_height // 2
+    else:
+        left, top, width, height = rect
+        x = left + int(width * SAP_EXPORT_RIGHT_CLICK_X_RATIO)
+        y = top + int(height * SAP_EXPORT_RIGHT_CLICK_Y_RATIO)
+        print(f"{label} SAP right click position: x={x}, y={y}")
+
+    pyautogui.click(x=x, y=y, button="right")
+
+
 def login_to_sap(password: str) -> None:
     print("SAP 로그인 창 대기: 5초")
     time.sleep(5)
@@ -285,7 +367,7 @@ def sap_fhfc_fill_and_export() -> None:
 def export_current_sap_list(label: str) -> None:
     print(f"{label} 리스트 로드 대기: 5초")
     time.sleep(5)
-    pyautogui.click(x=400, y=400, button="right")
+    right_click_sap_export_area(label)
     time.sleep(0.5)
     pyautogui.press("s")
     time.sleep(0.3)
