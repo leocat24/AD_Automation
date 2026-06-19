@@ -22,7 +22,7 @@ SAP에서 반복 정비 데이터와 항공기 FH/FC 데이터를 내려받아 G
 3. `credentials.json`을 `AD_auto_main.exe` 또는 `AD_auto_main.py`와 같은 폴더에 둡니다.
 4. 아래 SAP shortcut 파일이 존재해야 합니다.
    - `C:\Users\User\Desktop\IP24.SAP`
-   - `C:\Users\User\Desktop\[PM]AC_FH_FC.SAP`
+   - `C:\Users\User\Desktop\ZFDAS.sap`
 
 ## SAP 화면 기준
 

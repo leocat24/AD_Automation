@@ -19,7 +19,7 @@ SPREADSHEET_ID = "1Atc94uuyCmG2I6bGkDSyQfTS7gLLuKgGhSKPqDr_OBY"
 WORKSHEET_NAME = "REPETITIVE"
 
 IP24_SAP_FILE = Path(r"C:\Users\User\Desktop\IP24.SAP")
-FHFC_SAP_FILE = Path(r"C:\Users\User\Desktop\[PM]AC_FH_FC.SAP")
+FHFC_SAP_FILE = Path(r"C:\Users\User\Desktop\ZFDAS.sap")
 FHFC_DOWNLOAD_DIR = Path.home() / "Desktop" / "Google Drive for Henry Desktop"
 IP24_DOWNLOAD_DIR = FHFC_DOWNLOAD_DIR / "AD Repeat"
 DESKTOP_DIR = Path.home() / "Desktop"
